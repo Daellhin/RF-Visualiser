@@ -5,6 +5,7 @@ const xMoveAmount = 6;
 let visualisations = [];
 let scale = 10;
 let inputCache = "";
+let indexCounter = 0;
 
 function addMousePressedHandler(btn, funct) {
   var myHoverInterval = null;
@@ -31,21 +32,26 @@ class Visualisation {
     this._mirror = true;
     this._startX = 0;
     this._index = index;
+    
+    // creating div
+    this._div = document.createElement("div");
+    this._div.id = "visualisation" + this._index;
+
 
     // creating canvas
     this._canvas = document.createElement("canvas");
-    this._canvas.width = window.innerWidth-20;
+    this._canvas.width = window.innerWidth - 20;
     this._canvas.height = canvasHeight;
-    
+
     this._canvas.onmouseover = () => {
       const input = document.getElementById("input");
       inputCache = input.value;
       input.value = this._input;
-    }
+    };
     this._canvas.onmouseout = () => {
       const input = document.getElementById("input");
       input.value = inputCache;
-    }
+    };
 
     // creating graphicsContext
     this._ctx = this._canvas.getContext("2d");
@@ -55,17 +61,15 @@ class Visualisation {
   }
 
   convertInput(input) {
-    return input.trim().replace(/ /g,"").split(",");
+    return input.trim().replace(/ /g, "").split(",");
   }
 
   toHtml() {
-    const div = document.createElement("div");
     const btnLeft = document.createElement("button");
     const btnRight = document.createElement("button");
     const btnMirror = document.createElement("button");
     const btnRemove = document.createElement("button");
 
-    div.id = "visualisation" + this._index;
     btnLeft.className = "visualisationButton";
     btnRight.className = "visualisationButton";
     btnMirror.className = "visualisationButton";
@@ -79,21 +83,28 @@ class Visualisation {
     addMousePressedHandler(btnLeft, () => this.moveCanvasLeft());
     addMousePressedHandler(btnRight, () => this.moveCanvasRight());
     btnMirror.onclick = () => this.mirrorCanvas();
-    btnRemove.onclick = () => this.removeHtml();
+    btnRemove.onclick = () => this.remove();
 
-    div.appendChild(this._canvas);
-    div.appendChild(document.createElement("p"));
-    div.appendChild(btnLeft);
-    div.appendChild(btnRight);
-    div.appendChild(btnMirror);
-    div.appendChild(btnRemove);
-    div.appendChild(document.createElement("p"));
+    this._div.appendChild(this._canvas);
+    this._div.appendChild(document.createElement("p"));
+    this._div.appendChild(btnLeft);
+    this._div.appendChild(btnRight);
+    this._div.appendChild(btnMirror);
+    this._div.appendChild(btnRemove);
+    this._div.appendChild(document.createElement("p"));
 
-    document.getElementById("visualisations").insertAdjacentElement("afterbegin",div);
+    document
+      .getElementById("visualisations")
+      .insertAdjacentElement("afterbegin", this._div);
   }
 
-  removeHtml() {
-    document.getElementById("visualisation" + this._index).remove();
+  removeHtml(){
+    this._div.remove();
+  }
+
+  remove() {
+    visualisations.splice(visualisations.indexOf(this), 1);
+    this.removeHtml();
   }
 
   draw() {
@@ -137,8 +148,8 @@ class Visualisation {
     this.draw();
   }
 
-  resizeCanvas(){
-    this._canvas.width = window.innerWidth-20;
+  resizeCanvas() {
+    this._canvas.width = window.innerWidth - 20;
   }
 }
 
@@ -146,7 +157,7 @@ function createVisualisation() {
   const input = document.getElementById("input");
   let inputValue = input.value;
   input.value = "";
-  let visualisation = new Visualisation(inputValue, visualisations.length);
+  let visualisation = new Visualisation(inputValue, indexCounter++);
   visualisation.toHtml();
   visualisation.draw();
 
@@ -173,9 +184,10 @@ function init() {
     });
   };
   document.getElementById("clear").onclick = () => {
-    visualisations.forEach((e) => {
+    visualisations.forEach((e,index) => {
       e.removeHtml();
     });
+    visualisations = [];
   };
   document.getElementById("scale").oninput = function () {
     scale = this.value;
@@ -184,7 +196,7 @@ function init() {
     });
   };
 
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     visualisations.forEach((e) => {
       e.resizeCanvas();
     });
