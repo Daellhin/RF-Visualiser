@@ -55,7 +55,7 @@ class Visualisation {
   }
 
   convertInput(input) {
-    return input.trim().split(", ");
+    return input.trim().replace(/ /g,"").split(",");
   }
 
   toHtml() {
