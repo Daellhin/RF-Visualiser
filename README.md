@@ -1,3 +1,3 @@
 # RF-Visualiser
 Web page for visualising RF timings.
-[Image](https://imgur.com/5iqCp9i)
+[Image](https://github.com/Daellhin/RF-Visualiser/blob/master/RF-Visualiser.png)
