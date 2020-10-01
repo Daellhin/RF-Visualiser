@@ -4,21 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualiser</title>
-    <link rel="stylesheet" href="tes.css">
+    <link rel="stylesheet" href="visualiser.css">
 </head>
 <body>
-    <p>example: [17:11:23][D][remote.raw:041]: Received Raw: -370, 680, -362, 686, -363, 686, -694, 356, -500, 356, -698, 356, -694, 355 </p>
-    <textarea name="input" id="input" cols="120" rows="10" placeholder="Enter value:"></textarea>
-    <p></p>
-    <button id="start">Start</button>
-    <button id="mirror">Mirror</button>
-    <p></p>
-    <canvas id="canvas" width="1000" height="300"></canvas>
-    <p></p>
-    <button id="left">Left</button>
-    <button id="right">Right</button>
-    <p id=inputP></p>
-    <p id=rawP></p>
-    <script src="test2.js"></script>
+    <div id="top">
+        <h1>Visualiser</h1>
+        <textarea id="input" cols="120" rows="5" placeholder="Enter value: -370, 680, -362, 686... "></textarea>
+        <p></p>
+        <button class="controllButton" id="start">Add new</button>
+        <button class="controllButton" id="left">Left</button>
+        <button class="controllButton" id="right">Right</button>
+        <button class="controllButton" id="mirror">Mirror</button>
+        <button class="controllButton" id="clear">Clear</button>
+        <input type="range" min="5" max="40" value="10" id="scale">
+        <p></p>
+    </div>
+    <div id="visualisations">
+
+    </div>
+    <script src="visualiser.js"></script>
 </body>
 </html>

@@ -1,134 +1,194 @@
 //[17:11:23][D][remote.raw:041]: Received Raw: -370, 680, -362, 686, -363, 686, -694, 356, -693, 356, -698, 356, -694, 355
-const height = 70;
+const canvasHeight = 150;
 const xMoveAmount = 6;
 
-let raw;
-let flipped = false;
-let startX = 0;
+let visualisations = [];
+let scale = 10;
+let inputCache = "";
 
-class Visualisation{
-  constructor(input) {
-    this._mirror = false;
-    this._input = input;
-    this._raw = this.convertInput(input);
-  }
-
-  convertInput(input){
-    input.trim();
-  }
-}
-
-function start() {
-  input = document.getElementById("input").value.trim();
-
-  if (input.indexOf("Received Raw: ") > 0) {
-    let start = input.indexOf("Received Raw: ");
-    raw = input.substring(start + "Received Raw: ".length, input.length);
-  } else {
-    raw = input;
-  }
-
-  document.getElementById("inputP").innerHTML = input;
-  document.getElementById("rawP").innerHTML = raw;
-
-  draw();
-}
-
-function mirror() {
-  if (raw != null) {
-    flipped = !flipped;
-    draw();
-  }
-}
-
-function draw() {
-  let canvas = document.getElementById("canvas");
-  let ctx = canvas.getContext("2d");
-
-  let xDistance = startX;
-  let baseline = flipped;
-
-  ctx.fillStyle = "black";
-
-  // graph
-  ctx.beginPath();
-  ctx.clearRect(0, 0, 3000, 3000);
-  ctx.moveTo(startX, 200 - (baseline ? 0 : height));
-
-  toArray(raw).forEach((e) => {
-    xDistance += Math.abs(e) / 10;
-    ctx.lineTo(xDistance, 200 - (baseline ? 0 : height));
-    ctx.lineTo(xDistance, 200 - (!baseline ? 0 : height));
-    baseline = !baseline;
-  });
-
-  ctx.stroke();
-}
-
-function moveLeft() {
-  console.log(startX);
-  if (startX < 0) {
-    startX += xMoveAmount;
-    draw();
-  }
-}
-
-function moveRight() {
-  startX -= xMoveAmount;
-  draw();
-}
-
-function toArray(input) {
-  let output = [];
-  input.split(", ").forEach((e) => {
-    output.push(e.trim());
-  });
-  return output;
-}
-
-function init() {
-  // document.getElementById("input").addEventListener("keyup", start);
-  document.getElementById("start").addEventListener("click", start);
-  document.getElementById("mirror").addEventListener("click", mirror);
-
+function addMousePressedHandler(btn, funct) {
   var myHoverInterval = null;
-  var btn = document.getElementById("right");
 
-  btn.addEventListener("mouseover", function () {
+  btn.onmousedown = () => {
     if (myHoverInterval != null) {
       return;
     }
-    myHoverInterval = setInterval(function () {
-      moveRight();
-    }, 1);
-  });
+    myHoverInterval = setInterval(funct, 1);
+  };
 
-  btn.addEventListener("mouseout", function () {
+  btn.onmouseup = () => {
     if (myHoverInterval != null) {
       clearInterval(myHoverInterval);
       myHoverInterval = null;
     }
-  });
+  };
+}
 
-  var myHoverIntervalLeft = null;
-  var btn = document.getElementById("left");
+class Visualisation {
+  constructor(input, index) {
+    this._input = input;
+    this._raw = this.convertInput(input);
+    this._mirror = true;
+    this._startX = 0;
+    this._index = index;
 
-  btn.addEventListener("mouseover", function () {
-    if (myHoverInterval != null) {
-      return;
+    // creating canvas
+    this._canvas = document.createElement("canvas");
+    this._canvas.width = window.innerWidth-20;
+    this._canvas.height = canvasHeight;
+    
+    this._canvas.onmouseover = () => {
+      const input = document.getElementById("input");
+      inputCache = input.value;
+      input.value = this._input;
     }
-    myHoverIntervalLeft = setInterval(function () {
-      moveLeft();
-    }, 1);
-  });
-
-  btn.addEventListener("mouseout", function () {
-    if (myHoverIntervalLeft != null) {
-      clearInterval(myHoverIntervalLeft);
-      myHoverIntervalLeft = null;
+    this._canvas.onmouseout = () => {
+      const input = document.getElementById("input");
+      input.value = inputCache;
     }
+
+    // creating graphicsContext
+    this._ctx = this._canvas.getContext("2d");
+    this._ctx.strokeStyle = "black";
+    this._ctx.lineWidth = 1.5;
+    this._ctx.textAlign = "end";
+  }
+
+  convertInput(input) {
+    return input.trim().split(", ");
+  }
+
+  toHtml() {
+    const div = document.createElement("div");
+    const btnLeft = document.createElement("button");
+    const btnRight = document.createElement("button");
+    const btnMirror = document.createElement("button");
+    const btnRemove = document.createElement("button");
+
+    div.id = "visualisation" + this._index;
+    btnLeft.className = "visualisationButton";
+    btnRight.className = "visualisationButton";
+    btnMirror.className = "visualisationButton";
+    btnRemove.className = "visualisationButton";
+
+    btnLeft.innerHTML = "Left";
+    btnRight.innerHTML = "Right";
+    btnMirror.innerHTML = "Mirror";
+    btnRemove.innerHTML = "Remove";
+
+    addMousePressedHandler(btnLeft, () => this.moveCanvasLeft());
+    addMousePressedHandler(btnRight, () => this.moveCanvasRight());
+    btnMirror.onclick = () => this.mirrorCanvas();
+    btnRemove.onclick = () => this.removeHtml();
+
+    div.appendChild(this._canvas);
+    div.appendChild(document.createElement("p"));
+    div.appendChild(btnLeft);
+    div.appendChild(btnRight);
+    div.appendChild(btnMirror);
+    div.appendChild(btnRemove);
+    div.appendChild(document.createElement("p"));
+
+    document.getElementById("visualisations").insertAdjacentElement("afterbegin",div);
+  }
+
+  removeHtml() {
+    document.getElementById("visualisation" + this._index).remove();
+  }
+
+  draw() {
+    const center = canvasHeight / 2 - 0;
+    const graphHeight = canvasHeight / 2 - 20;
+    let xDistance = this._startX;
+    let baseline = this._mirror;
+
+    this._ctx.beginPath();
+
+    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+    this._ctx.moveTo(xDistance, center - (baseline ? 0 : graphHeight));
+
+    this._raw.forEach((e) => {
+      xDistance += Math.abs(e) / scale;
+      this._ctx.lineTo(xDistance, center - (baseline ? 0 : graphHeight));
+      this._ctx.lineTo(xDistance, center - (!baseline ? 0 : graphHeight));
+      this._ctx.rotate(-Math.PI / 2);
+      this._ctx.fillText(e, -center - 15, xDistance + 8);
+      this._ctx.rotate(Math.PI / 2);
+      baseline = !baseline;
+    });
+
+    this._ctx.stroke();
+  }
+
+  moveCanvasLeft() {
+    if (this._startX < 0) {
+      this._startX += xMoveAmount;
+      this.draw();
+    }
+  }
+
+  moveCanvasRight() {
+    this._startX -= xMoveAmount;
+    this.draw();
+  }
+
+  mirrorCanvas() {
+    this._mirror = !this._mirror;
+    this.draw();
+  }
+
+  resizeCanvas(){
+    this._canvas.width = window.innerWidth-20;
+  }
+}
+
+function createVisualisation() {
+  const input = document.getElementById("input");
+  let inputValue = input.value;
+  input.value = "";
+  let visualisation = new Visualisation(inputValue, visualisations.length);
+  visualisation.toHtml();
+  visualisation.draw();
+
+  visualisations.push(visualisation);
+}
+
+function init() {
+  let btnStart = document.getElementById("start");
+  btnStart.addEventListener("click", createVisualisation);
+
+  addMousePressedHandler(document.getElementById("left"), () => {
+    visualisations.forEach((e) => {
+      e.moveCanvasLeft();
+    });
+  });
+  addMousePressedHandler(document.getElementById("right"), () => {
+    visualisations.forEach((e) => {
+      e.moveCanvasRight();
+    });
+  });
+  document.getElementById("mirror").onclick = () => {
+    visualisations.forEach((e) => {
+      e.mirrorCanvas();
+    });
+  };
+  document.getElementById("clear").onclick = () => {
+    visualisations.forEach((e) => {
+      e.removeHtml();
+    });
+  };
+  document.getElementById("scale").oninput = function () {
+    scale = this.value;
+    visualisations.forEach((e) => {
+      e.draw();
+    });
+  };
+
+  window.addEventListener('resize', () => {
+    visualisations.forEach((e) => {
+      e.resizeCanvas();
+    });
   });
 }
-window.onload = init;
 
-//https://stackoverflow.com/questions/26096403/css-js-move-viewport-on-the-right-side-of-the-screen
+window.onload = init;
