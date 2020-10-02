@@ -4,7 +4,6 @@ const xMoveAmount = 6;
 
 let visualisations = [];
 let scale = 10;
-let inputCache = "";
 let indexCounter = 0;
 
 function addMousePressedHandler(btn, funct) {
@@ -45,12 +44,7 @@ class Visualisation {
 
     this._canvas.onmouseover = () => {
       const input = document.getElementById("input");
-      inputCache = input.value;
       input.value = this._input;
-    };
-    this._canvas.onmouseout = () => {
-      const input = document.getElementById("input");
-      input.value = inputCache;
     };
 
     // creating graphicsContext
@@ -199,6 +193,7 @@ function init() {
   window.addEventListener("resize", () => {
     visualisations.forEach((e) => {
       e.resizeCanvas();
+      e.draw();
     });
   });
 }
