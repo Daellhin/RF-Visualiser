@@ -42,11 +42,6 @@ class Visualisation {
     this._canvas.width = window.innerWidth - 20;
     this._canvas.height = canvasHeight;
 
-    this._canvas.onmouseover = () => {
-      const input = document.getElementById("input");
-      input.value = this._input;
-    };
-
     // creating graphicsContext
     this._ctx = this._canvas.getContext("2d");
     this._ctx.strokeStyle = "black";
@@ -63,29 +58,32 @@ class Visualisation {
     const btnRight = document.createElement("button");
     const btnMirror = document.createElement("button");
     const btnRemove = document.createElement("button");
+    const btnShowRaw = document.createElement("button");
 
     btnLeft.className = "visualisationButton";
     btnRight.className = "visualisationButton";
     btnMirror.className = "visualisationButton";
     btnRemove.className = "visualisationButton";
+    btnShowRaw.className = "visualisationButton";
 
     btnLeft.innerHTML = "Left";
     btnRight.innerHTML = "Right";
     btnMirror.innerHTML = "Mirror";
     btnRemove.innerHTML = "Remove";
+    btnShowRaw.innerHTML = "Show Raw";
 
     addMousePressedHandler(btnLeft, () => this.moveCanvasLeft());
     addMousePressedHandler(btnRight, () => this.moveCanvasRight());
     btnMirror.onclick = () => this.mirrorCanvas();
     btnRemove.onclick = () => this.remove();
+    btnShowRaw.onclick = () => this.showRaw();
 
     this._div.appendChild(this._canvas);
-    this._div.appendChild(document.createElement("p"));
     this._div.appendChild(btnLeft);
     this._div.appendChild(btnRight);
     this._div.appendChild(btnMirror);
     this._div.appendChild(btnRemove);
-    this._div.appendChild(document.createElement("p"));
+    this._div.appendChild(btnShowRaw);
 
     document
       .getElementById("visualisations")
@@ -144,6 +142,11 @@ class Visualisation {
 
   resizeCanvas() {
     this._canvas.width = window.innerWidth - 20;
+  }
+
+  showRaw(){
+    const input = document.getElementById("input");
+    input.value = this._input;
   }
 }
 
